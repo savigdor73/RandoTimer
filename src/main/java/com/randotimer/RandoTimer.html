@@ -1,0 +1,84 @@
+<html>
+<head>
+<style>
+.divL, .divR {
+	display: inline-block;
+	box-sizing: border-box;
+	width: 49%;
+	padding: 10px;
+	margin: 0;
+}
+
+.divL {
+	background: #ffe9c6;
+}
+
+.divR {
+	background: #ffdad8;
+}
+
+#main {
+	line-height: 400px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+#frm {
+	display: inline-block;
+	vertical-align: middle;
+	line-height: 14px;
+}
+</style>
+
+
+</head>
+<body>
+	<style type="text/css">
+#mydiv {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 30em;
+	height: 18em;
+	margin-top: -9em; /*set to a negative number 1/2 of your height*/
+	margin-left: -15em; /*set to a negative number 1/2 of your width*/
+	border: 1px solid #ccc;
+	background-color: #f3f3f3;
+}
+</style>
+
+
+	<div class="container">
+		<div id="main">
+			<form id="frm" wicket:id="mainForm">
+				<div class="divL">
+					<label>min num:</label> <br/>
+					<input ficket:id="minNumber" /> <br/>
+					<label>max num:</label> <br/> 
+					<input ficket:id="maxNumber" /> <br/> 
+					<label>max time to change num (seconds)</label> <br/>
+					<input ficket:id="changeNumberDelay" />
+				</div>
+				<div class="divR">
+					<label>num sets:</label> <br/>
+					<input ficket:id="numSets" /> <br/>
+					<label>set duration (min.):</label> <br/>
+					<input ficket:id="setDuration" /> <br/> 
+					<label>wait time before start (sec.):</label> <br/>
+					<input ficket:id="waitTimeBeforeStart" />
+				</div>
+				<button wicket:id="submit">Start</button>
+			</form>
+		</div>
+		<div id="timer">
+			<center><label style="font-size: 400%" wicket:id="timer"></label></center>
+		</div>
+		<div id="go">
+			<Center><label style="font-size:200%"><span wicket:id="goMessage">Go!</span></label></Center>
+		</div>
+		<div id="doWorkout">
+			<center><label style="font-size:300%">Do Workout <span wicket:id="workoutNumber"></span></label></center>			  
+		</div>		
+	</div>
+</body>
+</html>
