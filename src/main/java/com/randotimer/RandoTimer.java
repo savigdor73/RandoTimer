@@ -1,28 +1,21 @@
 package com.randotimer;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Optional;
 
-import org.apache.wicket.Application;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
-import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.event.IEvent;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.util.time.Duration;
-
-import com.sun.xml.internal.ws.spi.db.FieldSetter;
 public class RandoTimer extends WebPage {
 
 	/**
@@ -42,11 +35,12 @@ public class RandoTimer extends WebPage {
     private ComponentsNotifier displayTimerCompsNotifier = new ComponentsNotifier(displayTimerLabel,displayTimerNotifiedComps); 
     //private AjaxSelfUpdatingTimerBehavior updateCountdownBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.seconds(1));
     private CountdownAjaxBehavior updateCountdownBehavior = new CountdownAjaxBehavior(Duration.seconds(1));
-    private AjaxSelfUpdatingTimerBehavior updateWorkoutIdBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.seconds(3));
+    private AjaxSelfUpdatingTimerBehavior updateWorkoutIdBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.seconds(5));
     private String submitCaption = "Start";
     private PropertyModel<String> submitCaptionModel = new PropertyModel<String>(this,"submitCaption");
-    private Label submitCaptionLabel;
+    private Label submitCaptionLabel = new Label("submitCaption",submitCaptionModel);
     private Form <?> form = new Form<Void>("mainForm");
+    private boolean running=false;
     
     @Override
     public void onEvent(IEvent<?> event) {
@@ -55,11 +49,15 @@ public class RandoTimer extends WebPage {
     	{
     		ComponentEvent ce = (ComponentEvent)event.getPayload(); 
     		if (ce == ComponentEvent.TimerCompleted) {
+    			Optional<AjaxRequestTarget> optionalAjaxRequestTarget = RequestCycle.get().find(AjaxRequestTarget.class);
+    			AjaxRequestTarget target = optionalAjaxRequestTarget.get();
     			updateCountdownBehavior.stop(null);
 				updateWorkoutIdBehavior.stop(null);
-				displayTimerLabel.setDefaultModelObject(timer);
 				//submitCaptionModel.setObject("Start");
-				this.send(submit, Broadcast.EXACT, ce);
+				submitCaptionModel.setObject("Start");
+				displayTimerLabel.setDefaultModelObject(timer);
+				target.add(submit);
+				running=false;
     		}
     	}
     }
@@ -72,6 +70,7 @@ public class RandoTimer extends WebPage {
 		goMessageLabel.setOutputMarkupId(true);
 		workoutNumberLabel.setOutputMarkupId(true);
 		displayTimerLabel.setOutputMarkupId(true);
+		form.setOutputMarkupId(true);
 		
 	    fields.put("minNumber", 
 	    		   new TextField<Integer>("minNumber",new PropertyModel<Integer>(trainingParams,"minNumber")));
@@ -86,28 +85,39 @@ public class RandoTimer extends WebPage {
 	    fields.put("waitTimeBeforeStart", 
 	    		   new TextField<Integer>("waitTimeBeforeStart",new PropertyModel<Integer>(trainingParams,"waitTimeBeforeStart")));
 	    
-	    submit = new AjaxButton("submit",submitCaptionModel) {
-	        @Override
-	        public void onEvent(IEvent<?> event) {
-	        	System.out.println("onEvent <submit> called.\n");
-	        	if (event.getPayload() instanceof ComponentEvent)
-	        	{
-	        		ComponentEvent ce = (ComponentEvent)event.getPayload(); 
-	        		if (ce == ComponentEvent.TimerCompleted) {
-	    				submitCaptionModel.setObject("Start");
-	    				this.onEvent(event);
-	        		}
-	        	}
-	        }
-	    	
-	    };	
-	    
+	    submit = new AjaxButton("submit") {
+	    	/**
+			 * 
+			 */
+			private static final long serialVersionUID = -3082292666533810011L;
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target)
+			{
+				System.out.println("onEvent click called.\n");
+				if (running==false) {
+					updateCountdownBehavior.restart(target);
+					updateWorkoutIdBehavior.restart(target);
+					running = true;
+					submitCaptionModel.setObject("Stop");
+				}
+				else
+				{
+					updateCountdownBehavior.stop(target);
+					updateWorkoutIdBehavior.stop(target);
+					//displayTimerLabel.remove(updateCountdownBehavior);
+					//workoutNumberLabel.remove(updateWorkoutIdBehavior);
+					running=false;
+					submitCaptionModel.setObject("Start");
+				}
+				target.add(displayTimerLabel,workoutNumberLabel,submit);				
+			}
+	    };
 	    //submitCaptionLabel = new Label("submitCaption",submitCaptionModel);
 	    //submit.add(submitCaptionLabel);
 	    //ubmitCaptionLabel.setOutputMarkupId(true);
 	    AjaxEventBehavior clickBehavior = new AjaxEventBehavior("click") {
 	    	
-	    	boolean running=false;
 			@Override
 			protected void onEvent(AjaxRequestTarget target) {
 				System.out.println("onEvent click called.\n");
@@ -128,9 +138,12 @@ public class RandoTimer extends WebPage {
 				}
 				target.add(displayTimerLabel,workoutNumberLabel,submit);
 			}
-	    }; 
+	    };
+	    //submit.add(clickBehavior);
 	    submit.setOutputMarkupId(true);
-	    form.add(submit);
+	    submit.add(submitCaptionLabel);
+	    submitCaptionLabel.setOutputMarkupId(true);
+	    form.add(submit); 
 	    add(form);
 	    add(goMessageLabel);
 	    add(workoutNumberLabel);

@@ -67,8 +67,9 @@
 					<label>wait time before start (sec.):</label> <br/>
 					<input ficket:id="waitTimeBeforeStart" />
 				</div>
-				<button wicket:id="submit">Start</button>
+				<button wicket:id="submit"><span wicket:id="submitCaption">Start</span></button>				
 			</form>
+			
 		</div>
 		<div id="timer">
 			<center><label style="font-size: 400%" wicket:id="timer"></label></center>
@@ -77,7 +78,7 @@
 			<Center><label style="font-size:200%"><span wicket:id="goMessage">Go!</span></label></Center>
 		</div>
 		<div id="doWorkout">
-			<center><label style="font-size:300%">Do Workout <span wicket:id="workoutNumber"></span></label></center>			  
+			<center><label style="font-size:1000%"><span wicket:id="workoutNumber"></span></label></center>			  
 		</div>		
 	</div>
 </body>
